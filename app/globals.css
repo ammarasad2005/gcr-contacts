@@ -551,6 +551,22 @@ img { display: block; }
 }
 .skeleton-text { flex: 1; }
 
+/* ── Section Badge (🏷 BCS-4A) ───────────────────────────────────── */
+.section-badge {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           3px;
+  padding:       2px 7px;
+  background:    var(--purple-bg);
+  color:         var(--purple);
+  border:        1px solid rgba(188,140,255,0.25);
+  border-radius: 100px;
+  font-size:     10px;
+  font-weight:   600;
+  letter-spacing: 0.03em;
+  white-space:   nowrap;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .landing h1    { font-size: 26px; }

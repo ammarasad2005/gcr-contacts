@@ -13,6 +13,7 @@ import { listCourses, getTeachers }  from '@/lib/classroom';
 import { filterCurrentSemester }     from '@/lib/semesterFilter';
 import { resolveTeachers }           from '@/lib/emailResolver';
 import { campusFromEmail }           from '@/lib/studentRegex';
+import { fetchTaSheet }              from '@/lib/taSheet';
 
 // ── Inner dashboard (needs useSearchParams so wrapped in Suspense) ──
 function DashboardInner() {
@@ -20,10 +21,11 @@ function DashboardInner() {
   const searchParams = useSearchParams();
 
   const [user,    setUser]    = useState(null);
-  const [courses, setCourses] = useState([]);   // fully resolved CourseCard data
+  const [courses, setCourses] = useState([]);
   const [skeletonCount, setSkeletonCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
+  const [taSheetRows, setTaSheetRows] = useState([]);
 
   // ── 1. On mount: absorb tokens from URL (set by /api/auth/callback) ──
   useEffect(() => {
@@ -70,8 +72,13 @@ function DashboardInner() {
       const currentUser = getUser();
       const campus = campusFromEmail(currentUser?.email);
 
-      // Fetch all active courses
-      const allCourses = await listCourses(token);
+      // Fetch TA sheet (cache-first) in parallel with course list
+      const [allCourses, sheetRows] = await Promise.all([
+        listCourses(token),
+        fetchTaSheet().catch(() => []),   // gracefully degrade if sheet is unavailable
+      ]);
+      setTaSheetRows(sheetRows);
+
       const semCourses = filterCurrentSemester(allCourses);
 
       // Show skeletons immediately — one per course
@@ -89,7 +96,7 @@ function DashboardInner() {
         semCourses.map(async (course) => {
           try {
             const teachers = await getTeachers(course.id, token);
-            const people   = await resolveTeachers(teachers, course.name, token, campus);
+            const people   = await resolveTeachers(teachers, course.name, token, campus, sheetRows);
             const entry    = { id: course.id, name: course.name, people };
             resolved.push(entry);
 

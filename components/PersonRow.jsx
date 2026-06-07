@@ -52,6 +52,9 @@ export default function PersonRow({ person }) {
       <div className="person-info">
         <div className="person-name">{displayName}</div>
         <div className="person-meta">
+          {person.section && (
+            <span className="section-badge">🏷 {person.section}</span>
+          )}
           {email ? (
             <span className="person-email">{email}</span>
           ) : (
